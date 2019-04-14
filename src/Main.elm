@@ -52,14 +52,79 @@ init _ =
     ( initModel, Cmd.none )
 
 
+add : Model -> Model
+add model =
+    let
+        player =
+            { id = List.length model.players, name = model.name, points = 0 }
+
+        newPlayers =
+            player :: model.players
+    in
+    { model
+        | players = newPlayers
+        , name = ""
+    }
+
+
+save : Model -> Model
+save model =
+    case model.playerId of
+        Just id ->
+            edit model id
+
+        Nothing ->
+            add model
+
+
+edit : Model -> Int -> Model
+edit model id =
+    let
+        newPlayers =
+            List.map
+                (\player ->
+                    if player.id == id then
+                        { player | name = model.name }
+
+                    else
+                        player
+                )
+                model.players
+
+        newPlays =
+            List.map
+                (\play ->
+                    if play.playerId == id then
+                        { play | name = model.name }
+
+                    else
+                        play
+                )
+                model.plays
+    in
+    { model
+        | players = newPlayers
+        , plays = newPlays
+        , name = ""
+        , playerId = Nothing
+    }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Input name ->
             ( { model | name = name }, Cmd.none )
 
+        Save ->
+            if String.isEmpty model.name then
+                ( model, Cmd.none )
+
+            else
+                ( save model, Cmd.none )
+
         Cancel ->
-            ( { model | name = "" }, Cmd.none )
+            ( { model | name = "", playerId = Nothing }, Cmd.none )
 
         _ ->
             ( initModel, Cmd.none )
