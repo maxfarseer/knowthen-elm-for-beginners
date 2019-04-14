@@ -30,7 +30,12 @@ type alias Play =
 
 
 type Msg
-    = Clear
+    = Edit Player
+    | Score Player Int
+    | Input String
+    | Save
+    | Cancel
+    | DeletePlay Play
 
 
 initModel : Model
@@ -50,7 +55,13 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Clear ->
+        Input name ->
+            ( { model | name = name }, Cmd.none )
+
+        Cancel ->
+            ( { model | name = "" }, Cmd.none )
+
+        _ ->
             ( initModel, Cmd.none )
 
 
@@ -66,7 +77,31 @@ main =
 
 view : Model -> Html Msg
 view model =
-    Html.div []
-        [ Html.h3 []
-            [ Html.text "Scorekeeper app" ]
+    Html.div [ Attr.class "scoreboard" ]
+        [ Html.h1 []
+            [ Html.text "Score Keeper" ]
+        , playerForm model
+        , Html.p
+            []
+            [ Html.text <| Debug.toString model ]
+        ]
+
+
+playerForm : Model -> Html Msg
+playerForm model =
+    Html.form [ Events.onSubmit Save ]
+        [ Html.input
+            [ Attr.type_ "text"
+            , Attr.placeholder "Add/Edit player..."
+            , Events.onInput Input
+            , Attr.value model.name
+            ]
+            []
+        , Html.button [ Attr.type_ "submit" ]
+            [ Html.text "Add" ]
+        , Html.button
+            [ Attr.type_ "button"
+            , Events.onClick Cancel
+            ]
+            [ Html.text "Cancel" ]
         ]
