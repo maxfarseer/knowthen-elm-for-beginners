@@ -134,6 +134,28 @@ updatePlayerPoints model scorer points =
     { model | players = newPlayers, plays = newPlaysRecord :: model.plays }
 
 
+deletePlay : Model -> Play -> Model
+deletePlay model play =
+    let
+        newPlays =
+            List.filter
+                (\p -> p.id /= play.id)
+                model.plays
+
+        newPlayers =
+            List.map
+                (\player ->
+                    if player.id == play.playerId then
+                        { player | points = player.points - play.points }
+
+                    else
+                        player
+                )
+                model.players
+    in
+    { model | players = newPlayers, plays = newPlays }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -153,11 +175,11 @@ update msg model =
         Score player points ->
             ( updatePlayerPoints model player points, Cmd.none )
 
+        DeletePlay play ->
+            ( deletePlay model play, Cmd.none )
+
         Cancel ->
             ( { model | name = "", playerId = Nothing }, Cmd.none )
-
-        _ ->
-            ( initModel, Cmd.none )
 
 
 main : Program () Model Msg
@@ -177,9 +199,7 @@ view model =
             [ Html.text "Score Keeper" ]
         , playerSection model
         , playerForm model
-        , Html.p
-            []
-            [ Html.text <| Debug.toString model ]
+        , playSection model
         ]
 
 
@@ -263,4 +283,43 @@ pointTotal model =
         []
         [ Html.div [] [ Html.text "Total points" ]
         , Html.div [] [ Html.text <| String.fromInt totalPoints ]
+        ]
+
+
+playSectionHeader : Html Msg
+playSectionHeader =
+    Html.header
+        []
+        [ Html.div [] [ Html.text "Plays" ]
+        , Html.div [] [ Html.text "Points" ]
+        ]
+
+
+playSectionEntry : Play -> Html Msg
+playSectionEntry play =
+    Html.li
+        []
+        [ Html.i
+            [ Attr.class "edit"
+            , Events.onClick (DeletePlay play)
+            ]
+            [ Html.text "[DEL] " ]
+        , Html.div [] [ Html.text play.name ]
+        , Html.div [] [ Html.text <| String.fromInt play.points ]
+        ]
+
+
+playSectionList : Model -> Html Msg
+playSectionList model =
+    model.plays
+        |> List.map playSectionEntry
+        |> Html.ul []
+
+
+playSection : Model -> Html Msg
+playSection model =
+    Html.div
+        []
+        [ playSectionHeader
+        , playSectionList model
         ]
