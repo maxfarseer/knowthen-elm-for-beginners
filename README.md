@@ -4,8 +4,8 @@ App made during this "[Elm for beginners](https://courses.knowthen.com/p/elm-for
 
 TODO:
 
-- [] markup
-- [] tests
+- [ ] markup
+- [ ] tests
 
 ## Install & Run
 
